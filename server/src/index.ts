@@ -1,8 +1,7 @@
+import './env';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import { prisma } from './lib/prisma';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -10,9 +9,16 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Health check
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+// Health check with DB connectivity
+app.get('/api/health', async (_req, res) => {
+  let db = false;
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    db = true;
+  } catch (_) {
+    // db stays false
+  }
+  res.json({ ok: true, db, timestamp: new Date().toISOString() });
 });
 
 app.listen(PORT, () => {

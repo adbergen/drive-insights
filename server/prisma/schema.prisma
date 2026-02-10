@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model DriveFile {
+  id           Int      @id @default(autoincrement())
+  driveId      String   @unique
+  name         String
+  mimeType     String
+  size         BigInt? // nullable — Google Drive folders have no size
+  ownerEmail   String?
+  ownerName    String?
+  createdTime  DateTime?
+  modifiedTime DateTime?
+  webViewLink  String?
+  trashed      Boolean  @default(false)
+  lastSyncedAt DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("drive_files")
+}
+
+model OAuthToken {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  accessToken  String
+  refreshToken String
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("oauth_tokens")
+}

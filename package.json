@@ -5,10 +5,14 @@
     "dev": "concurrently --names server,client --prefix-colors blue,green \"pnpm --filter server dev\" \"pnpm --filter client dev\"",
     "build": "pnpm --filter server build && pnpm --filter client build",
     "typecheck": "pnpm --filter server typecheck && pnpm --filter client typecheck",
-    "lint": "pnpm --filter server lint && pnpm --filter client lint"
+    "lint": "pnpm --filter server lint && pnpm --filter client lint",
+    "db:migrate": "dotenv -e .env -- pnpm --filter server exec prisma migrate dev",
+    "db:generate": "dotenv -e .env -- pnpm --filter server exec prisma generate",
+    "db:studio": "dotenv -e .env -- pnpm --filter server exec prisma studio"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "dotenv-cli": "^11.0.0"
   },
   "engines": {
     "node": ">=24.0.0"

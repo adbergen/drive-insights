@@ -1,7 +1,18 @@
 <script setup lang="ts">
+import { computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useSyncStore } from '@/stores/sync'
 
 const auth = useAuthStore()
+const sync = useSyncStore()
+
+const lastSyncedLabel = computed(() =>
+  sync.lastSyncedAt ? new Date(sync.lastSyncedAt).toLocaleString() : null,
+)
+
+onMounted(() => {
+  sync.fetchStatus()
+})
 </script>
 
 <template>
@@ -50,7 +61,7 @@ const auth = useAuthStore()
     <v-card
       v-else
       max-width="480"
-      class="pa-8 text-center"
+      class="pa-8 d-flex flex-column align-center"
       elevation="2"
     >
       <v-icon
@@ -62,6 +73,27 @@ const auth = useAuthStore()
       <v-card-text class="text-body-1 mb-4">
         Signed in as <strong>{{ auth.email }}</strong>
       </v-card-text>
+
+      <v-btn
+        variant="flat"
+        color="primary"
+        size="large"
+        prepend-icon="mdi-sync"
+        :loading="sync.syncing"
+        class="mb-4"
+        @click="sync.triggerSync()"
+      >
+        Sync Drive Files
+      </v-btn>
+
+      <div
+        v-if="sync.lastSyncedAt"
+        class="text-body-2 text-medium-emphasis mb-4"
+      >
+        {{ sync.fileCount }} files synced &middot;
+        Last synced {{ lastSyncedLabel }}
+      </div>
+
       <v-btn
         variant="outlined"
         color="error"

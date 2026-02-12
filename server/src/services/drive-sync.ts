@@ -7,7 +7,7 @@ const DRIVE_FILE_FIELDS =
   "nextPageToken,files(id,name,mimeType,size,owners(emailAddress,displayName),createdTime,modifiedTime,webViewLink,trashed)";
 
 /** Build an OAuth2 client from stored tokens, with automatic refresh. */
-async function getAuthenticatedClient() {
+export async function getAuthenticatedClient() {
   const token = await prisma.oAuthToken.findFirst();
   if (!token) throw new Error("No OAuth token found. Connect Google first.");
 

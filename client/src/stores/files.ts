@@ -64,5 +64,27 @@ export const useFilesStore = defineStore('files', () => {
     }
   }
 
-  return { files, total, loading, params, fetchFiles }
+  async function renameFile(driveId: string, name: string) {
+    const res = await fetch(`/api/files/${driveId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => null)
+      throw new Error(body?.error ?? `Rename failed: ${res.status}`)
+    }
+    await fetchFiles()
+  }
+
+  async function deleteFile(driveId: string) {
+    const res = await fetch(`/api/files/${driveId}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const body = await res.json().catch(() => null)
+      throw new Error(body?.error ?? `Delete failed: ${res.status}`)
+    }
+    await fetchFiles()
+  }
+
+  return { files, total, loading, params, fetchFiles, renameFile, deleteFile }
 })

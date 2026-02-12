@@ -51,8 +51,8 @@ export async function syncDriveFiles(): Promise<{ synced: number }> {
     const files = res.data.files ?? [];
     const now = new Date();
 
-    const ops = files
-      .filter((f) => !!f.id)
+    const upsertOperations = files
+      .filter((file) => !!file.id)
       .map((file) => {
         const owner = file.owners?.[0];
         const fields = {
@@ -74,10 +74,10 @@ export async function syncDriveFiles(): Promise<{ synced: number }> {
         });
       });
 
-    for (let i = 0; i < ops.length; i += 100) {
-      await prisma.$transaction(ops.slice(i, i + 100));
+    for (let i = 0; i < upsertOperations.length; i += 100) {
+      await prisma.$transaction(upsertOperations.slice(i, i + 100));
     }
-    synced += ops.length;
+    synced += upsertOperations.length;
 
     pageToken = res.data.nextPageToken ?? undefined;
   } while (pageToken);

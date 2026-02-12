@@ -5,6 +5,7 @@ import { prisma } from "./lib/prisma";
 import authRoutes from "./routes/auth";
 import syncRoutes from "./routes/sync";
 import filesRoutes from "./routes/files";
+import queryRoutes from "./routes/query";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/sync", syncRoutes);
 app.use("/api/files", filesRoutes);
+app.use("/api/query", queryRoutes);
 
 // Health check with DB connectivity
 app.get("/api/health", async (_req, res) => {

@@ -270,17 +270,23 @@ export async function generateAnswer(
   question: string,
   result: QueryResult,
 ): Promise<string> {
+  // Strip webViewLink — the AI doesn't need URLs to answer questions
+  const sanitized = {
+    ...result,
+    files: result.files.map(({ webViewLink: _, ...rest }) => rest),
+  };
+
   const response = await getClient().chat.completions.create({
     model: "gpt-4o-mini",
     messages: [
       {
         role: "system",
         content:
-          "You answer questions about Google Drive files based on query results. Be concise (2-3 sentences). If files are listed, briefly summarize what was found. Only use data from the provided results — do not invent or assume information.",
+          "You answer questions about Google Drive files based on query results. Be concise (2-3 sentences). The results may contain a files array and/or a stats object with topTypes, topOwners, uniqueOwners, and dateDistribution. Use all available data to answer the question. Only use data from the provided results — do not invent or assume information. Never include links or URLs in your response.",
       },
       {
         role: "user",
-        content: `Question: ${question}\n\nQuery results: ${JSON.stringify(result)}`,
+        content: `Question: ${question}\n\nQuery results: ${JSON.stringify(sanitized)}`,
       },
     ],
     temperature: 0.3,

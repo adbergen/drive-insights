@@ -9,7 +9,7 @@ const auth = useAuthStore()
 const sync = useSyncStore()
 
 onMounted(() => {
-  sync.fetchStatus()
+  if (auth.connected) sync.fetchStatus()
 })
 </script>
 

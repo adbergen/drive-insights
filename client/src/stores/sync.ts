@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
+import { useAuthStore } from './auth'
 
 export const useSyncStore = defineStore('sync', () => {
   const syncing = ref(false)
@@ -9,6 +10,7 @@ export const useSyncStore = defineStore('sync', () => {
   async function fetchStatus() {
     try {
       const res = await fetch('/api/sync/status')
+      if (res.status === 401) { useAuthStore().handleUnauthorized(); fileCount.value = 0; lastSyncedAt.value = null; return }
       if (!res.ok) throw new Error(`Sync status failed: ${res.status}`)
       const data = await res.json()
       fileCount.value = data.fileCount ?? 0
@@ -22,6 +24,7 @@ export const useSyncStore = defineStore('sync', () => {
     syncing.value = true
     try {
       const res = await fetch('/api/sync', { method: 'POST' })
+      if (res.status === 401) { useAuthStore().handleUnauthorized(); throw new Error('Unauthorized') }
       if (!res.ok) throw new Error(`Sync failed: ${res.status}`)
       await fetchStatus()
     } catch (err) {

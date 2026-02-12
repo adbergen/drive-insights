@@ -1,5 +1,6 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Response } from "express";
 import { google } from "googleapis";
+import jwt from "jsonwebtoken";
 import { prisma } from "../lib/prisma";
 import { Prisma } from "../generated/prisma/client";
 import {
@@ -7,8 +8,24 @@ import {
   getAuthUrl,
   exchangeCodeForTokens,
 } from "../services/google-auth";
+import { requireEnv } from "../env";
 
 const router: IRouter = Router();
+
+const COOKIE_NAME = "token";
+const JWT_EXPIRY = "7d";
+const JWT_SECRET = requireEnv("JWT_SECRET");
+
+function setAuthCookie(res: Response, email: string): void {
+  const token = jwt.sign({ email }, JWT_SECRET, { expiresIn: JWT_EXPIRY });
+  res.cookie(COOKIE_NAME, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: "/",
+  });
+}
 
 // Redirect user to Google consent screen
 router.get("/google", (_req, res) => {
@@ -70,7 +87,9 @@ router.get("/google/callback", async (req, res) => {
       },
     });
 
-    // Redirect back to client
+    // Issue JWT session cookie
+    setAuthCookie(res, email);
+
     const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:5173";
     res.redirect(clientOrigin);
   } catch (err) {
@@ -81,9 +100,20 @@ router.get("/google/callback", async (req, res) => {
 });
 
 // Check if user is connected to Google
-router.get("/status", async (_req, res) => {
+router.get("/status", async (req, res) => {
   try {
-    const token = await prisma.oAuthToken.findFirst();
+    const cookieToken = req.cookies?.[COOKIE_NAME];
+    if (!cookieToken) {
+      res.json({ connected: false });
+      return;
+    }
+
+    const payload = jwt.verify(cookieToken, JWT_SECRET) as { email: string };
+
+    const token = await prisma.oAuthToken.findUnique({
+      where: { email: payload.email },
+    });
+
     if (token) {
       res.json({
         connected: true,
@@ -92,18 +122,28 @@ router.get("/status", async (_req, res) => {
         accessTokenExpiresAt: token.expiresAt,
       });
     } else {
+      res.clearCookie(COOKIE_NAME, { path: "/" });
       res.json({ connected: false });
     }
-  } catch (err) {
-    console.error("Auth status error:", err);
+  } catch {
+    res.clearCookie(COOKIE_NAME, { path: "/" });
     res.json({ connected: false });
   }
 });
 
 // Disconnect Google account
-router.delete("/disconnect", async (_req, res) => {
+router.delete("/disconnect", async (req, res) => {
   try {
-    await prisma.oAuthToken.deleteMany();
+    const cookieToken = req.cookies?.[COOKIE_NAME];
+    if (cookieToken) {
+      try {
+        const payload = jwt.verify(cookieToken, JWT_SECRET) as { email: string };
+        await prisma.oAuthToken.delete({ where: { email: payload.email } }).catch(() => {});
+      } catch {
+        // invalid cookie — nothing to delete
+      }
+    }
+    res.clearCookie(COOKIE_NAME, { path: "/" });
     res.json({ disconnected: true });
   } catch (err) {
     console.error("Disconnect error:", err);

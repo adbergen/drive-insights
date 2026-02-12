@@ -7,8 +7,8 @@ const DRIVE_FILE_FIELDS =
   "nextPageToken,files(id,name,mimeType,size,owners(emailAddress,displayName),createdTime,modifiedTime,webViewLink,trashed)";
 
 /** Build an OAuth2 client from stored tokens, with automatic refresh. */
-export async function getAuthenticatedClient() {
-  const token = await prisma.oAuthToken.findFirst();
+export async function getAuthenticatedClient(email: string) {
+  const token = await prisma.oAuthToken.findUnique({ where: { email } });
   if (!token) throw new Error("No OAuth token found. Connect Google first.");
 
   const client = createOAuth2Client();
@@ -34,8 +34,8 @@ export async function getAuthenticatedClient() {
 }
 
 /** Sync all Drive files to the local database. Returns the number of files synced. */
-export async function syncDriveFiles(): Promise<{ synced: number }> {
-  const auth = await getAuthenticatedClient();
+export async function syncDriveFiles(email: string): Promise<{ synced: number }> {
+  const auth = await getAuthenticatedClient(email);
   const drive = google.drive({ version: "v3", auth });
 
   let synced = 0;

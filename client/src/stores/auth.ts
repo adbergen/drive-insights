@@ -38,5 +38,10 @@ export const useAuthStore = defineStore('auth', () => {
     email.value = null
   }
 
-  return { connected, email, loading, checkStatus, connectGoogle, disconnectGoogle }
+  function handleUnauthorized() {
+    connected.value = false
+    email.value = null
+  }
+
+  return { connected, email, loading, checkStatus, connectGoogle, disconnectGoogle, handleUnauthorized }
 })

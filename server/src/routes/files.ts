@@ -111,7 +111,7 @@ router.put("/:driveId", async (req, res) => {
     const file = await prisma.driveFile.findUnique({ where: { driveId } });
     if (!file) return res.status(404).json({ error: "File not found" });
 
-    const auth = await getAuthenticatedClient();
+    const auth = await getAuthenticatedClient(req.userEmail!);
     const drive = google.drive({ version: "v3", auth });
     await drive.files.update({
       fileId: driveId,
@@ -156,7 +156,7 @@ router.delete("/:driveId", async (req, res) => {
     const file = await prisma.driveFile.findUnique({ where: { driveId } });
     if (!file) return res.status(404).json({ error: "File not found" });
 
-    const auth = await getAuthenticatedClient();
+    const auth = await getAuthenticatedClient(req.userEmail!);
     const drive = google.drive({ version: "v3", auth });
     await drive.files.update({
       fileId: driveId,

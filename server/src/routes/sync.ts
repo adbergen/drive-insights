@@ -5,9 +5,9 @@ import { syncDriveFiles } from "../services/drive-sync";
 const router: IRouter = Router();
 
 // Trigger a full Drive file sync
-router.post("/", async (_req, res) => {
+router.post("/", async (req, res) => {
   try {
-    const { synced } = await syncDriveFiles();
+    const { synced } = await syncDriveFiles(req.userEmail!);
 
     const aggregate = await prisma.driveFile.aggregate({
       _max: { lastSyncedAt: true },

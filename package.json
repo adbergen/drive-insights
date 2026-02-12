@@ -4,8 +4,8 @@
   "scripts": {
     "dev": "concurrently --names server,client --prefix-colors blue,green \"pnpm --filter server dev\" \"pnpm --filter client dev\"",
     "build": "pnpm --filter server build && pnpm --filter client build",
-    "typecheck": "pnpm --filter server typecheck && pnpm --filter client typecheck",
-    "lint": "pnpm --filter server lint && pnpm --filter client lint",
+    "typecheck": "pnpm --filter server run typecheck && pnpm --filter client run type-check",
+    "lint": "pnpm --filter client lint",
     "db:migrate": "dotenv -e .env -- pnpm --filter server exec prisma migrate dev",
     "db:generate": "dotenv -e .env -- pnpm --filter server exec prisma generate",
     "db:push": "dotenv -e .env -- pnpm --filter server exec prisma db push",

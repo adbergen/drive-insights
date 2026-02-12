@@ -8,6 +8,7 @@
     "lint": "pnpm --filter server lint && pnpm --filter client lint",
     "db:migrate": "dotenv -e .env -- pnpm --filter server exec prisma migrate dev",
     "db:generate": "dotenv -e .env -- pnpm --filter server exec prisma generate",
+    "db:push": "dotenv -e .env -- pnpm --filter server exec prisma db push",
     "db:studio": "dotenv -e .env -- pnpm --filter server exec prisma studio"
   },
   "devDependencies": {

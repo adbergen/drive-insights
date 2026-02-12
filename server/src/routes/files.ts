@@ -22,7 +22,7 @@ router.get("/", async (req, res) => {
     const sortBy = typeof req.query.sortBy === "string" ? req.query.sortBy : "modifiedTime";
     const order = req.query.order === "asc" ? "asc" : "desc";
 
-    const where: Prisma.DriveFileWhereInput = { trashed: false };
+    const where: Prisma.DriveFileWhereInput = { trashed: false, userEmail: req.userEmail! };
 
     if (search) {
       where.name = { contains: search, mode: "insensitive" };
@@ -74,7 +74,7 @@ router.get("/:driveId", async (req, res) => {
     if (!driveId) return res.status(400).json({ error: "Invalid ID" });
 
     const file = await prisma.driveFile.findUnique({
-      where: { driveId },
+      where: { driveId_userEmail: { driveId, userEmail: req.userEmail! } },
       select: {
         id: true,
         driveId: true,
@@ -108,7 +108,7 @@ router.put("/:driveId", async (req, res) => {
       return res.status(400).json({ error: "Name is required" });
     }
 
-    const file = await prisma.driveFile.findUnique({ where: { driveId } });
+    const file = await prisma.driveFile.findUnique({ where: { driveId_userEmail: { driveId, userEmail: req.userEmail! } } });
     if (!file) return res.status(404).json({ error: "File not found" });
 
     const auth = await getAuthenticatedClient(req.userEmail!);
@@ -124,7 +124,7 @@ router.put("/:driveId", async (req, res) => {
     });
 
     const updated = await prisma.driveFile.update({
-      where: { driveId },
+      where: { driveId_userEmail: { driveId, userEmail: req.userEmail! } },
       data: {
         name: name.trim(),
         modifiedTime: data.modifiedTime ? new Date(data.modifiedTime) : file.modifiedTime,
@@ -153,7 +153,7 @@ router.delete("/:driveId", async (req, res) => {
     const { driveId } = req.params;
     if (!driveId) return res.status(400).json({ error: "Invalid ID" });
 
-    const file = await prisma.driveFile.findUnique({ where: { driveId } });
+    const file = await prisma.driveFile.findUnique({ where: { driveId_userEmail: { driveId, userEmail: req.userEmail! } } });
     if (!file) return res.status(404).json({ error: "File not found" });
 
     const auth = await getAuthenticatedClient(req.userEmail!);
@@ -164,7 +164,7 @@ router.delete("/:driveId", async (req, res) => {
     });
 
     await prisma.driveFile.update({
-      where: { driveId },
+      where: { driveId_userEmail: { driveId, userEmail: req.userEmail! } },
       data: { trashed: true, lastSyncedAt: new Date() },
     });
     res.status(204).end();

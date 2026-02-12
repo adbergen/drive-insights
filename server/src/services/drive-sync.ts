@@ -68,9 +68,9 @@ export async function syncDriveFiles(email: string): Promise<{ synced: number }>
           lastSyncedAt: now,
         };
         return prisma.driveFile.upsert({
-          where: { driveId: file.id! },
+          where: { driveId_userEmail: { driveId: file.id!, userEmail: email } },
           update: fields,
-          create: { driveId: file.id!, ...fields },
+          create: { driveId: file.id!, userEmail: email, ...fields },
         });
       });
 

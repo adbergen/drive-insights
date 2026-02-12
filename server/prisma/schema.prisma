@@ -9,7 +9,8 @@ datasource db {
 
 model DriveFile {
   id           Int      @id @default(autoincrement())
-  driveId      String   @unique
+  driveId      String
+  userEmail    String
   name         String
   mimeType     String
   size         BigInt? // nullable — Google Drive folders have no size
@@ -23,6 +24,10 @@ model DriveFile {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  @@unique([driveId, userEmail])
+  @@index([userEmail, trashed])
+  @@index([userEmail, modifiedTime])
+  @@index([userEmail, ownerEmail])
   @@map("drive_files")
 }
 

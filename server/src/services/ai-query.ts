@@ -121,12 +121,12 @@ const VALID_INTENTS = new Set([
   "summary",
 ]);
 
-export async function executeIntent(intent: Intent): Promise<QueryResult> {
+export async function executeIntent(intent: Intent, userEmail: string): Promise<QueryResult> {
   if (!VALID_INTENTS.has(intent.type)) {
     throw new Error(`Unknown intent type: ${intent.type}`);
   }
 
-  const base = { trashed: false };
+  const base = { trashed: false, userEmail };
 
   switch (intent.type) {
     case "search": {

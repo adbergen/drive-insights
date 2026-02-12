@@ -1,16 +1,22 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useSyncStore } from '@/stores/sync'
+import { useAnalyticsStore } from '@/stores/analytics'
 import AiQueryCard from '@/components/AiQueryCard.vue'
+import AnalyticsDashboard from '@/components/AnalyticsDashboard.vue'
 import FileTable from '@/components/file-table/FileTable.vue'
 
 const auth = useAuthStore()
 const sync = useSyncStore()
+const analytics = useAnalyticsStore()
 
-onMounted(() => {
-  if (auth.connected) sync.fetchStatus()
-})
+watch(() => auth.connected, (connected) => {
+  if (connected) {
+    sync.fetchStatus()
+    analytics.fetchAnalytics()
+  }
+}, { immediate: true })
 </script>
 
 <template>
@@ -25,7 +31,6 @@ onMounted(() => {
       indeterminate
       color="primary"
     />
-
 
     <!-- Connect with Google -->
     <v-card
@@ -53,9 +58,25 @@ onMounted(() => {
       </v-btn>
     </v-card>
 
-    <template v-else>
-      <AiQueryCard />
-      <FileTable />
-    </template>
+    <v-row
+      v-else
+      style="height: calc(100vh - 64px - 24px)"
+    >
+      <v-col
+        cols="12"
+        md="8"
+        class="d-flex flex-column overflow-hidden"
+      >
+        <AiQueryCard />
+        <FileTable />
+      </v-col>
+      <v-col
+        cols="12"
+        md="4"
+        class="overflow-auto"
+      >
+        <AnalyticsDashboard />
+      </v-col>
+    </v-row>
   </v-container>
 </template>

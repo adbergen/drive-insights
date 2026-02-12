@@ -10,6 +10,7 @@ router.post("/", async (req, res) => {
     const { synced } = await syncDriveFiles(req.userEmail!);
 
     const aggregate = await prisma.driveFile.aggregate({
+      where: { userEmail: req.userEmail! },
       _max: { lastSyncedAt: true },
     });
 
@@ -25,11 +26,12 @@ router.post("/", async (req, res) => {
 });
 
 // Get sync status (file count and last sync time)
-router.get("/status", async (_req, res) => {
+router.get("/status", async (req, res) => {
   try {
+    const where = { userEmail: req.userEmail! };
     const [count, aggregate] = await Promise.all([
-      prisma.driveFile.count(),
-      prisma.driveFile.aggregate({ _max: { lastSyncedAt: true } }),
+      prisma.driveFile.count({ where }),
+      prisma.driveFile.aggregate({ where, _max: { lastSyncedAt: true } }),
     ]);
 
     res.json({

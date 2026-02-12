@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useFilesStore, type DriveFile } from '@/stores/files'
 import { useSyncStore } from '@/stores/sync'
+import { useAnalyticsStore } from '@/stores/analytics'
 import { formatDate, friendlyMimeType } from '@/utils/formatters'
 import RenameDialog from './RenameDialog.vue'
 import DeleteDialog from './DeleteDialog.vue'
@@ -9,6 +10,7 @@ import ViewDialog from './ViewDialog.vue'
 
 const files = useFilesStore()
 const sync = useSyncStore()
+const analytics = useAnalyticsStore()
 
 const lastSyncedLabel = computed(() =>
   sync.lastSyncedAt ? new Date(sync.lastSyncedAt).toLocaleString() : null,
@@ -17,6 +19,7 @@ const lastSyncedLabel = computed(() =>
 async function onSync() {
   await sync.triggerSync()
   files.fetchFiles()
+  analytics.fetchAnalytics()
 }
 
 const headers = [
@@ -86,7 +89,11 @@ function clearFilters() {
 </script>
 
 <template>
-  <v-card rounded="lg">
+  <v-card
+    rounded="lg"
+    class="d-flex flex-column flex-grow-1"
+    style="min-height: 0"
+  >
     <v-data-table-server
       :headers="headers"
       :items="files.files"
@@ -95,6 +102,8 @@ function clearFilters() {
       :page="files.params.page"
       :items-per-page="files.params.limit"
       :sort-by="[{ key: files.params.sortBy, order: files.params.order }]"
+      fixed-header
+      class="flex-grow-1"
       @update:options="onUpdateOptions"
     >
       <template #top>
@@ -251,3 +260,17 @@ function clearFilters() {
     :file="activeFile"
   />
 </template>
+
+<style scoped>
+.v-card :deep(.v-data-table) {
+  display: flex;
+  flex-direction: column;
+  height: 0;
+  min-height: 0;
+}
+
+.v-card :deep(.v-table__wrapper) {
+  flex: 1 1 0;
+  overflow-y: auto;
+}
+</style>

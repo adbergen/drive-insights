@@ -39,7 +39,7 @@ router.post("/", async (req, res) => {
     }
 
     const intent = await classifyIntent(question.trim());
-    const result = await executeIntent(intent);
+    const result = await executeIntent(intent, req.userEmail!);
     const answer = await generateAnswer(question.trim(), result);
 
     res.json({

@@ -31,6 +31,12 @@ onMounted(() => {
           />
           {{ auth.email }}
         </v-chip>
+        <v-btn
+          icon="mdi-logout"
+          variant="text"
+          size="small"
+          @click="auth.disconnectGoogle()"
+        />
       </template>
     </v-app-bar>
 

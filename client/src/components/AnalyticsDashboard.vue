@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { Doughnut, Bar } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -79,6 +79,10 @@ const ownerOptions = {
   indexAxis: 'y' as const,
 } as const
 
+// Auto-fetch insights when analytics data loads (fingerprint-guarded)
+watch(() => analytics.data, (newData) => {
+  if (newData) analytics.fetchInsights()
+}, { immediate: true })
 </script>
 
 <template>
@@ -181,6 +185,34 @@ const ownerOptions = {
             style="height: 100%"
           >No data</div>
         </div>
+      </div>
+
+      <div class="mt-4">
+        <div class="text-subtitle-2 mb-1">
+          <v-icon
+            start
+            size="x-small"
+          >mdi-lightbulb-outline</v-icon>
+          AI Insights
+        </div>
+        <v-skeleton-loader
+          v-if="analytics.insightsLoading"
+          type="text, text, text"
+        />
+        <ul
+          v-else-if="analytics.insights.length"
+          class="pl-4"
+        >
+          <li
+            v-for="insight in analytics.insights"
+            :key="insight"
+            class="text-body-2 mb-1"
+          >{{ insight }}</li>
+        </ul>
+        <div
+          v-else
+          class="text-body-2 text-medium-emphasis"
+        >No insights available</div>
       </div>
     </v-card-text>
   </v-card>

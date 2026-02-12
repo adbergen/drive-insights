@@ -1,12 +1,5 @@
-import OpenAI from "openai";
 import { prisma } from "../lib/prisma";
-
-let client: OpenAI | null = null;
-
-function getClient(): OpenAI {
-  if (!client) client = new OpenAI();
-  return client;
-}
+import { getClient } from "../lib/openai";
 
 type Intent =
   | { type: "search"; query: string }
@@ -54,6 +47,8 @@ Types and params:
 - "sort": { sortBy: "size"|"modifiedTime"|"createdTime"|"name", order: "asc"|"desc", limit: number }
 - "count": { filter?: string }
 - "summary": {}
+
+Use "summary" for questions about rankings, distributions, who owns the most/least files, averages per owner, or general statistics.
 
 Today is ${today}. Calculate dates for relative terms like "last week".`,
       },
@@ -195,8 +190,10 @@ export async function executeIntent(intent: Intent, userEmail: string): Promise<
       const sortField = allowed.includes(intent.sortBy)
         ? intent.sortBy
         : "modifiedTime";
+      const sortWhere =
+        sortField === "size" ? { ...base, size: { not: null } } : base;
       const files = await prisma.driveFile.findMany({
-        where: base,
+        where: sortWhere,
         select: FILE_SELECT,
         take: Math.min(intent.limit || 10, 20),
         orderBy: {

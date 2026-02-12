@@ -74,6 +74,7 @@ watch(() => auth.connected, (connected) => {
         cols="12"
         md="4"
         class="overflow-auto"
+        style="max-height: 100%"
       >
         <AnalyticsDashboard />
       </v-col>
